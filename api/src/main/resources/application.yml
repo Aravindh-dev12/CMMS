@@ -129,10 +129,10 @@ security:
         long-term-max-attempts: ${BRUTE_FORCE_RESET_LONG_TERM_ATTEMPTS:10}
         long-term-period-hours: ${BRUTE_FORCE_RESET_LONG_TERM_PERIOD_HOURS:24}
 frontend:
-  url: ${PUBLIC_FRONT_URL}
+  url: ${PUBLIC_FRONT_URL:http://localhost:3000}
   home-url: ${PUBLIC_HOME_URL:}
 mail:
-  recipients: ${MAIL_RECIPIENTS}
+  recipients: ${MAIL_RECIPIENTS:}
   enable: ${ENABLE_EMAIL_NOTIFICATIONS:false}
   type: ${MAIL_TYPE:SMTP}
 management:
@@ -142,9 +142,9 @@ management:
     ldap:
       enabled: ${LDAP_ENABLED:false}
 api:
-  host: ${PUBLIC_API_URL}
+  host: ${PUBLIC_API_URL:http://localhost:8080}
 storage:
-  type: ${STORAGE_TYPE}
+  type: ${STORAGE_TYPE:MINIO}
   minio:
     endpoint: ${MINIO_ENDPOINT:}
     bucket: ${MINIO_BUCKET:}
@@ -161,8 +161,8 @@ allowed-organization-admins: ${ALLOWED_ORGANIZATION_ADMINS:}
 cloud-version: ${CLOUD_VERSION:false}
 enable-sso: ${ENABLE_SSO:false}
 oauth2:
-  success-redirect-url: ${PUBLIC_FRONT_URL}/oauth2/success
-  failure-redirect-url: ${PUBLIC_FRONT_URL}/oauth2/failure
+  success-redirect-url: ${PUBLIC_FRONT_URL:http://localhost:3000}/oauth2/success
+  failure-redirect-url: ${PUBLIC_FRONT_URL:http://localhost:3000}/oauth2/failure
   provider: ${OAUTH2_PROVIDER:}
   client-id: ${OAUTH2_CLIENT_ID:}
   client-secret: ${OAUTH2_CLIENT_SECRET:}

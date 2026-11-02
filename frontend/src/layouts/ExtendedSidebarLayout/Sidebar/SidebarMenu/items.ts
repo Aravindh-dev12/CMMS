@@ -50,6 +50,31 @@ export interface MenuItems {
 
 const ownMenuItems: MenuItems[] = [
   {
+    heading: 'Maintenance Registers',
+    items: [
+      {
+        name: 'Maintenance Dashboard',
+        link: '/app/maintenance-dashboard',
+        icon: AnalyticsTwoToneIcon
+      },
+      {
+        name: 'Maintenance Booking Register',
+        link: '/app/maintenance-booking-register',
+        icon: BackupTableTwoToneIcon
+      },
+      {
+        name: 'Maintenance Work Register',
+        link: '/app/maintenance-work-register',
+        icon: HandymanTwoToneIcon
+      },
+      {
+        name: 'Maintenance Work Order Form',
+        link: '/app/maintenance-work-order-form',
+        icon: ReceiptTwoToneIcon
+      }
+    ]
+  },
+  {
     heading: '',
     items: [
       {

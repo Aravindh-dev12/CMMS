@@ -33,6 +33,10 @@ module.exports = {
   devServer: function (configFunction) {
     return function (proxy, allowedHost) {
       const config = configFunction(proxy, allowedHost);
+      config.historyApiFallback = {
+        index: '/index.html',
+        disableDotRule: true
+      };
       config.client = {
         ...config.client,
         overlay: false

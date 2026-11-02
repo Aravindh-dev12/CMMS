@@ -27,6 +27,11 @@ const locale = {
   key_features_description:
     'Some of the features that make {{shortBrandName}} one of the best CMMS available today',
   contribute: 'Contribute',
+  'Maintenance Dashboard': 'Maintenance Dashboard',
+  'Maintenance Booking Register': 'Maintenance Booking Register',
+  'Maintenance Work Register': 'Maintenance Work Register',
+  'Maintenance Work Order Form': 'Maintenance Work Order Form',
+  'Maintenance Registers': 'Maintenance Registers',
   work_orders: 'Work Orders',
   request_system: 'Work Request System',
   mobile_app: 'Mobile App',

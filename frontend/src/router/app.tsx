@@ -156,6 +156,18 @@ const PeopleAndTeams = Loader(
 );
 
 const Imports = Loader(lazy(() => import('../content/own/Imports')));
+const MaintenanceDashboard = Loader(
+  lazy(() => import('../content/own/Maintenance/Dashboard'))
+);
+const MaintenanceBookingRegister = Loader(
+  lazy(() => import('../content/own/Maintenance/BookingRegister'))
+);
+const MaintenanceWorkRegister = Loader(
+  lazy(() => import('../content/own/Maintenance/WorkRegister'))
+);
+const MaintenanceWorkOrderForm = Loader(
+  lazy(() => import('../content/own/Maintenance/WorkOrderForm'))
+);
 const Upgrade = Loader(
   lazy(() => import('../content/own/UpgradeAndDowngrade/Upgrade'))
 );
@@ -482,7 +494,11 @@ const appRoutes = [
   },
   { path: 'upgrade', element: <Upgrade /> },
   { path: 'downgrade', element: <Downgrade /> },
-  { path: 'switch-account', element: <SwitchAccount /> }
+  { path: 'switch-account', element: <SwitchAccount /> },
+  { path: 'maintenance-dashboard', element: <MaintenanceDashboard /> },
+  { path: 'maintenance-booking-register', element: <MaintenanceBookingRegister /> },
+  { path: 'maintenance-work-register', element: <MaintenanceWorkRegister /> },
+  { path: 'maintenance-work-order-form', element: <MaintenanceWorkOrderForm /> }
 ];
 
 export default appRoutes;
