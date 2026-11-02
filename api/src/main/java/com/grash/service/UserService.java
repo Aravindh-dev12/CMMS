@@ -99,7 +99,7 @@ public class UserService {
             cacheService.evictUserFromCache(email);
             Authentication authentication =
                     authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-            if (authentication.getAuthorities().stream().noneMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_" + type.toUpperCase()))) {
+            if (authentication.getAuthorities().stream().noneMatch(grantedAuthority -> grantedAuthority.getAuthority().equalsIgnoreCase("ROLE_" + type) || grantedAuthority.getAuthority().equals("ROLE_SUPER_ADMIN"))) {
                 throw new CustomException("Invalid credentials", HttpStatus.FORBIDDEN);
             }
             Optional<User> optionalUser = userRepository.findByEmailIgnoreCase(email);
@@ -649,4 +649,5 @@ public class UserService {
         }
     }
 }
+
 

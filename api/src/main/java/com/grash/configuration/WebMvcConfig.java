@@ -30,7 +30,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addCorsMappings(@NotNull CorsRegistry registry) {
         if (enableCors) {
             registry.addMapping("/**")
-                    .allowedOrigins(frontendUrl, frontendHomeUrl)
+                    .allowedOriginPatterns("*")
+                    .allowedHeaders("*")
                     .allowedMethods("HEAD", "OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE")
                     .allowCredentials(true)
                     .maxAge(MAX_AGE_SECS);
@@ -50,3 +51,4 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:/app/static/config/");
     }
 }
+
