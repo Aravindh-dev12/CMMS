@@ -40,6 +40,9 @@ public interface MaintenanceBookingRepository extends JpaRepository<MaintenanceB
     @Query("SELECT b.bookingId FROM MaintenanceBooking b WHERE b.company.id = :companyId")
     List<String> findAllBookingIdsByCompany(@Param("companyId") Long companyId);
 
+    @Query("SELECT b.bookingId FROM MaintenanceBooking b")
+    List<String> findAllBookingIds();
+
     @Query("SELECT b FROM MaintenanceBooking b WHERE b.company.id = :companyId ORDER BY b.createdAt DESC")
     List<MaintenanceBooking> findTop10RecentByCompany(@Param("companyId") Long companyId, Pageable pageable);
 

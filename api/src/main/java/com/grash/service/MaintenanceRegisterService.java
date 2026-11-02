@@ -38,7 +38,7 @@ public class MaintenanceRegisterService {
     private final UserRepository userRepository;
 
     public synchronized String generateNextBookingId(Long companyId) {
-        List<String> existingIds = bookingRepository.findAllBookingIdsByCompany(companyId);
+        List<String> existingIds = bookingRepository.findAllBookingIds();
         long maxNum = 2099;
         Pattern pattern = Pattern.compile("(\\d+)");
         for (String id : existingIds) {
@@ -461,9 +461,7 @@ public class MaintenanceRegisterService {
                 sampleDate = new Date();
             }
 
-            String id1 = bookingRepository.existsByBookingId("2100") ? generateNextBookingId() : "2100";
-            String id2 = bookingRepository.existsByBookingId("2101") ? generateNextBookingId() : "2101";
-            String id3 = bookingRepository.existsByBookingId("2102") ? generateNextBookingId() : "2102";
+            String id1 = generateNextBookingId(company.getId());
 
             MaintenanceBooking b1 = MaintenanceBooking.builder()
                     .bookingId(id1)
@@ -497,6 +495,8 @@ public class MaintenanceRegisterService {
             w1.setCompany(company);
             workRecordRepository.save(w1);
 
+            String id2 = generateNextBookingId(company.getId());
+
             MaintenanceBooking b2 = MaintenanceBooking.builder()
                     .bookingId(id2)
                     .date(sampleDate)
@@ -525,6 +525,8 @@ public class MaintenanceRegisterService {
                     .build();
             w2.setCompany(company);
             workRecordRepository.save(w2);
+
+            String id3 = generateNextBookingId(company.getId());
 
             MaintenanceBooking b3 = MaintenanceBooking.builder()
                     .bookingId(id3)
