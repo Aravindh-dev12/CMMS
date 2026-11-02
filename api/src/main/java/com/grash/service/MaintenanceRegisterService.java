@@ -461,8 +461,12 @@ public class MaintenanceRegisterService {
                 sampleDate = new Date();
             }
 
+            String id1 = bookingRepository.existsByBookingId("2100") ? generateNextBookingId() : "2100";
+            String id2 = bookingRepository.existsByBookingId("2101") ? generateNextBookingId() : "2101";
+            String id3 = bookingRepository.existsByBookingId("2102") ? generateNextBookingId() : "2102";
+
             MaintenanceBooking b1 = MaintenanceBooking.builder()
-                    .bookingId("2100")
+                    .bookingId(id1)
                     .date(sampleDate)
                     .reportedBy("Nandhini")
                     .building("B1")
@@ -473,14 +477,14 @@ public class MaintenanceRegisterService {
                     .status(BookingStatus.COMPLETED)
                     .typeOfWork("Plumbing")
                     .assignedTechnician(adminUser)
-                    .closedId("CL-2100")
+                    .closedId("CL-" + id1)
                     .build();
             b1.setCompany(company);
             b1 = bookingRepository.save(b1);
 
             MaintenanceWorkRecord w1 = MaintenanceWorkRecord.builder()
                     .booking(b1)
-                    .bookingCode("2100")
+                    .bookingCode(id1)
                     .typeOfWork("Plumbing")
                     .attendedBy("Naveen Kumar")
                     .technicianUser(adminUser)
@@ -488,13 +492,13 @@ public class MaintenanceRegisterService {
                     .finishingDate(sampleDate)
                     .timeTaken("1.5 hrs")
                     .workDetails("Replaced worn out ceramic tap washer and resealed valve.")
-                    .closedId("CL-2100")
+                    .closedId("CL-" + id1)
                     .build();
             w1.setCompany(company);
             workRecordRepository.save(w1);
 
             MaintenanceBooking b2 = MaintenanceBooking.builder()
-                    .bookingId("2101")
+                    .bookingId(id2)
                     .date(sampleDate)
                     .reportedBy("Chandramohan")
                     .building("B1")
@@ -511,7 +515,7 @@ public class MaintenanceRegisterService {
 
             MaintenanceWorkRecord w2 = MaintenanceWorkRecord.builder()
                     .booking(b2)
-                    .bookingCode("2101")
+                    .bookingCode(id2)
                     .typeOfWork("Plumbing")
                     .attendedBy("Suresh")
                     .technicianUser(adminUser)
@@ -523,7 +527,7 @@ public class MaintenanceRegisterService {
             workRecordRepository.save(w2);
 
             MaintenanceBooking b3 = MaintenanceBooking.builder()
-                    .bookingId("2102")
+                    .bookingId(id3)
                     .date(new Date())
                     .reportedBy("Ramesh")
                     .building("B2")
@@ -539,3 +543,4 @@ public class MaintenanceRegisterService {
         }
     }
 }
+
