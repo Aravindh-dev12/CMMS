@@ -25,9 +25,17 @@ export const getMaintenanceBookings = async (params?: {
   if (params?.reportedBy) query.append('reportedBy', params.reportedBy);
   if (params?.startDate) query.append('startDate', params.startDate);
   if (params?.endDate) query.append('endDate', params.endDate);
+  query.append('size', '1000');
 
   const qs = query.toString() ? `?${query.toString()}` : '';
-  return api.get<MaintenanceBooking[]>(`maintenance/bookings${qs}`);
+  const response: any = await api.get(`maintenance/bookings${qs}`);
+  if (Array.isArray(response)) {
+    return response;
+  }
+  if (response && Array.isArray(response.content)) {
+    return response.content;
+  }
+  return [];
 };
 
 export const getMaintenanceBookingById = async (id: number): Promise<MaintenanceBooking> => {
@@ -83,8 +91,15 @@ export const getMaintenanceWorkRecords = async (
 ): Promise<MaintenanceWorkRecord[]> => {
   const endpoint = bookingId
     ? `maintenance/work-records/booking/${bookingId}`
-    : 'maintenance/work-records';
-  return api.get<MaintenanceWorkRecord[]>(endpoint);
+    : 'maintenance/work-records?size=1000';
+  const response: any = await api.get(endpoint);
+  if (Array.isArray(response)) {
+    return response;
+  }
+  if (response && Array.isArray(response.content)) {
+    return response.content;
+  }
+  return [];
 };
 
 export const createMaintenanceWorkRecord = async (

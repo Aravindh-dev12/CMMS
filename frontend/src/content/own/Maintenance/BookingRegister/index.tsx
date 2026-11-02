@@ -42,7 +42,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
 import CreateIcon from '@mui/icons-material/Create';
 import SignatureCanvas from 'react-signature-canvas';
-import useAuth from 'src/hooks/useAuth';
+import useAuth from '../../../../hooks/useAuth';
 
 import {
   MaintenanceBooking,
@@ -114,7 +114,7 @@ const MaintenanceBookingRegister: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const data = await getMaintenanceBookings({
+      const data: any = await getMaintenanceBookings({
         search,
         status: statusFilter,
         building: buildingFilter,
@@ -122,9 +122,11 @@ const MaintenanceBookingRegister: React.FC = () => {
         startDate,
         endDate
       });
-      setBookings(data);
+      const list = Array.isArray(data) ? data : data?.content || [];
+      setBookings(list);
     } catch (err: any) {
       console.error('Failed to load bookings:', err);
+      setBookings([]);
     } finally {
       setLoading(false);
     }
@@ -132,10 +134,12 @@ const MaintenanceBookingRegister: React.FC = () => {
 
   const loadTechnicians = async () => {
     try {
-      const users = await api.get<UserMiniDTO[]>('users/mini?withRequesters=true');
-      setTechnicians(users || []);
+      const users: any = await api.get('users/mini?withRequesters=true');
+      const list = Array.isArray(users) ? users : users?.content || [];
+      setTechnicians(list);
     } catch (err) {
       console.error('Failed to load technicians:', err);
+      setTechnicians([]);
     }
   };
 
@@ -243,12 +247,15 @@ const MaintenanceBookingRegister: React.FC = () => {
   };
 
   const handleExportExcel = () => {
-    exportBookingsToExcel(bookings, 'Maintenance_Booking_Register.xlsx');
+    exportBookingsToExcel(safeBookings, 'Maintenance_Booking_Register.xlsx');
   };
 
   const handlePrint = () => {
     window.print();
   };
+
+  const safeBookings = Array.isArray(bookings) ? bookings : [];
+  const safeTechnicians = Array.isArray(technicians) ? technicians : [];
 
   return (
     <>
@@ -413,7 +420,7 @@ const MaintenanceBookingRegister: React.FC = () => {
             MAINTENANCE BOOKING REGISTER
           </Typography>
           <Typography variant="body2">
-            Generated on: {new Date().toLocaleString()} | Total Bookings: {bookings.length}
+            Generated on: {new Date().toLocaleString()} | Total Bookings: {safeBookings.length}
           </Typography>
         </Box>
 
@@ -461,7 +468,7 @@ const MaintenanceBookingRegister: React.FC = () => {
                       </Typography>
                     </TableCell>
                   </TableRow>
-                ) : bookings.length === 0 ? (
+                ) : safeBookings.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={10} align="center" sx={{ py: 6 }}>
                       <Typography variant="subtitle1" fontWeight={600} color="text.secondary">
@@ -473,7 +480,7 @@ const MaintenanceBookingRegister: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  bookings
+                  safeBookings
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((b, index) => {
                       const serialNo = page * rowsPerPage + index + 1;
@@ -587,7 +594,7 @@ const MaintenanceBookingRegister: React.FC = () => {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25, 50]}
             component="div"
-            count={bookings.length}
+            count={safeBookings.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={(_, newPage) => setPage(newPage)}
@@ -892,7 +899,7 @@ const MaintenanceBookingRegister: React.FC = () => {
               sx={{ mb: 2 }}
             >
               <MenuItem value="">-- Select or enter custom below --</MenuItem>
-              {technicians.map((t) => (
+              {safeTechnicians.map((t) => (
                 <MenuItem key={t.id} value={t.id}>
                   {t.firstName} {t.lastName} ({t.email})
                 </MenuItem>
@@ -1058,7 +1065,7 @@ const MaintenanceBookingRegister: React.FC = () => {
                   <HistoryIcon fontSize="small" /> Work Progress Records
                 </Typography>
 
-                {(!selectedBooking.workRecords || selectedBooking.workRecords.length === 0) ? (
+                {(!selectedBooking.workRecords || !Array.isArray(selectedBooking.workRecords) || selectedBooking.workRecords.length === 0) ? (
                   <Typography variant="body2" color="text.secondary">
                     No work records logged yet against this booking.
                   </Typography>

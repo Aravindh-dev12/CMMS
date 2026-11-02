@@ -95,14 +95,16 @@ const MaintenanceWorkRegister: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [records, allBookings] = await Promise.all([
+      const [records, allBookings]: any = await Promise.all([
         getMaintenanceWorkRecords(),
         getMaintenanceBookings()
       ]);
-      setWorkRecords(records || []);
-      setBookings(allBookings || []);
+      setWorkRecords(Array.isArray(records) ? records : records?.content || []);
+      setBookings(Array.isArray(allBookings) ? allBookings : allBookings?.content || []);
     } catch (err) {
       console.error('Failed to load maintenance work records:', err);
+      setWorkRecords([]);
+      setBookings([]);
     } finally {
       setLoading(false);
     }
@@ -184,7 +186,8 @@ const MaintenanceWorkRegister: React.FC = () => {
     }
   };
 
-  const filteredRecords = workRecords.filter((r) => {
+  const safeWorkRecords = Array.isArray(workRecords) ? workRecords : [];
+  const filteredRecords = safeWorkRecords.filter((r) => {
     const code = (r.bookingCode || r.booking?.bookingId || '').toLowerCase();
     const attended = (r.attendedBy || '').toLowerCase();
     const details = (r.workDetails || '').toLowerCase();
@@ -479,7 +482,7 @@ const MaintenanceWorkRegister: React.FC = () => {
                   onChange={(e) => handleBookingChange(Number(e.target.value))}
                   helperText="Choose booking to record work against"
                 >
-                  {bookings.map((b) => (
+                  {(Array.isArray(bookings) ? bookings : []).map((b) => (
                     <MenuItem key={b.id} value={b.id}>
                       #{b.bookingId} - {b.reportedBy} ({b.building} - {b.floor})
                     </MenuItem>

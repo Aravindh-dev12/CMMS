@@ -100,9 +100,11 @@ const MaintenanceWorkOrderForm: React.FC = () => {
         if (nextCodeRes?.nextBookingId) {
           setFormNumber(nextCodeRes.nextBookingId);
         }
-        setAvailableBookings(bookingsRes || []);
+        const list = Array.isArray(bookingsRes) ? bookingsRes : (bookingsRes as any)?.content || [];
+        setAvailableBookings(list);
       } catch (err) {
         console.error(err);
+        setAvailableBookings([]);
       }
     };
     init();
@@ -132,7 +134,8 @@ const MaintenanceWorkOrderForm: React.FC = () => {
   };
 
   const handleSelectBooking = (index: number, bCode: string) => {
-    const booking = availableBookings.find((b) => b.bookingId === bCode);
+    const safeList = Array.isArray(availableBookings) ? availableBookings : [];
+    const booking = safeList.find((b) => b.bookingId === bCode);
     const updated = [...rows];
     if (booking) {
       const displayBookingBy = booking.bookedBy
@@ -404,7 +407,7 @@ const MaintenanceWorkOrderForm: React.FC = () => {
                         }}
                       >
                         <MenuItem value="">-- Select --</MenuItem>
-                        {availableBookings.map((b) => (
+                        {(Array.isArray(availableBookings) ? availableBookings : []).map((b) => (
                           <MenuItem key={b.bookingId} value={b.bookingId}>
                             #{b.bookingId}
                           </MenuItem>
