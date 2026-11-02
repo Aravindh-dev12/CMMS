@@ -141,9 +141,9 @@ function App() {
       isInitialized &&
       isAuthenticated
     )
-      if (company.subscription.downgradeNeeded) {
+      if (company?.subscription?.downgradeNeeded) {
         navigate('/app/downgrade');
-      } else if (user.ownsCompany && company.subscription.upgradeNeeded) {
+      } else if (user?.ownsCompany && company?.subscription?.upgradeNeeded) {
         navigate('/app/upgrade');
       }
   }, [company, isInitialized, isAuthenticated, location]);
@@ -235,3 +235,4 @@ function App() {
   );
 }
 export default App;
+

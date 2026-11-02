@@ -1058,6 +1058,7 @@ export const AuthProvider: FC<AuthProviderProps> = (props) => {
     );
   };
   const hasFeature = (feature: PlanFeature) => {
+    if (!state.company?.subscription?.subscriptionPlan?.features) return true;
     return state.company.subscription.subscriptionPlan.features.includes(
       feature
     );
