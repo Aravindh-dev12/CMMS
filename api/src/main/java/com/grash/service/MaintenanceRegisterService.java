@@ -81,6 +81,15 @@ public class MaintenanceRegisterService {
             status = technician != null ? BookingStatus.ASSIGNED : BookingStatus.PENDING;
         }
 
+        String bookedByName = dto.getBookedBy();
+        if (bookedByName == null || bookedByName.trim().isEmpty()) {
+            bookedByName = (user.getFirstName() != null ? user.getFirstName() : "") +
+                    (user.getLastName() != null ? " " + user.getLastName() : "");
+            if (bookedByName.trim().isEmpty()) {
+                bookedByName = user.getEmail();
+            }
+        }
+
         MaintenanceBooking booking = MaintenanceBooking.builder()
                 .bookingId(bookingId)
                 .date(dto.getDate() != null ? dto.getDate() : new Date())
@@ -96,6 +105,9 @@ public class MaintenanceRegisterService {
                 .closedId(dto.getClosedId())
                 .closingRemarks(dto.getClosingRemarks())
                 .dueDate(dto.getDueDate())
+                .bookedBy(bookedByName.trim())
+                .bookedBySignature(dto.getBookedBySignature())
+                .remarks(dto.getRemarks())
                 .build();
         booking.setCompany(company);
 
@@ -117,6 +129,9 @@ public class MaintenanceRegisterService {
         if (dto.getComplaintDetails() != null) booking.setComplaintDetails(dto.getComplaintDetails());
         if (dto.getTypeOfWork() != null) booking.setTypeOfWork(dto.getTypeOfWork());
         if (dto.getDueDate() != null) booking.setDueDate(dto.getDueDate());
+        if (dto.getBookedBy() != null) booking.setBookedBy(dto.getBookedBy());
+        if (dto.getBookedBySignature() != null) booking.setBookedBySignature(dto.getBookedBySignature());
+        if (dto.getRemarks() != null) booking.setRemarks(dto.getRemarks());
 
         if (dto.getAssignedTechnicianId() != null) {
             User tech = userRepository.findByIdAndCompany_Id(dto.getAssignedTechnicianId(), company.getId()).orElse(null);

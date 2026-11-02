@@ -39,6 +39,9 @@ export interface MaintenanceBooking {
   closedDate?: string;
   closingRemarks?: string;
   dueDate?: string;
+  bookedBy?: string;
+  bookedBySignature?: string;
+  remarks?: string;
   workRecords?: MaintenanceWorkRecord[];
   createdAt?: string;
   updatedAt?: string;
@@ -63,6 +66,9 @@ export interface MaintenanceBookingPostDTO {
   bookingId?: string;
   date: string;
   reportedBy: string;
+  bookedBy?: string;
+  bookedBySignature?: string;
+  remarks?: string;
   building: string;
   floor: string;
   room?: string;

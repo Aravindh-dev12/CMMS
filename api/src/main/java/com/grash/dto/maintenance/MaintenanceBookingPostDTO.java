@@ -55,4 +55,13 @@ public class MaintenanceBookingPostDTO {
 
     @Schema(description = "Due date")
     private Date dueDate;
+
+    @Schema(description = "Name of the admin or person entering the booking", example = "Super Admin")
+    private String bookedBy;
+
+    @Schema(description = "Base64 digital signature of the person creating the booking")
+    private String bookedBySignature;
+
+    @Schema(description = "Initial remarks or notes entered during booking")
+    private String remarks;
 }

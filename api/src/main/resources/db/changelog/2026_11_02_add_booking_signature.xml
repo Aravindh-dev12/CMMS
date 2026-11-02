@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="2026_11_02_add_booked_by_and_signature_to_booking" author="CMMS Team">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="maintenance_booking" columnName="booked_by"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="maintenance_booking">
+            <column name="booked_by" type="VARCHAR(255)"/>
+            <column name="booked_by_signature" type="TEXT"/>
+            <column name="remarks" type="VARCHAR(2000)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

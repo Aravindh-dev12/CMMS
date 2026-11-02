@@ -91,6 +91,18 @@ public class MaintenanceBooking extends CompanyAudit {
     @Schema(description = "Due date for overdue tracking")
     private Date dueDate;
 
+    @Column(name = "booked_by")
+    @Schema(description = "Name of the admin or staff who entered the booking", example = "Super Admin")
+    private String bookedBy;
+
+    @Column(name = "booked_by_signature", columnDefinition = "TEXT")
+    @Schema(description = "Base64 digital signature of the person creating the booking")
+    private String bookedBySignature;
+
+    @Column(name = "remarks", length = 2000)
+    @Schema(description = "Initial remarks or notes entered during booking")
+    private String remarks;
+
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     @JsonIgnoreProperties({"booking"})

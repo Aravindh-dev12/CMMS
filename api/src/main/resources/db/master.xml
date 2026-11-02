@@ -243,4 +243,7 @@
              relativeToChangelogFile="true"/>
     <include file="changelog/2026_11_02_create_maintenance_registers.xml"
              relativeToChangelogFile="true"/>
+    <include file="changelog/2026_11_02_add_booking_signature.xml"
+             relativeToChangelogFile="true"/>
 </databaseChangeLog>
+

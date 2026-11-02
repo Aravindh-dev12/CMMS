@@ -29,6 +29,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CreateIcon from '@mui/icons-material/Create';
 import SignatureCanvas from 'react-signature-canvas';
+import useAuth from '../../../../hooks/useAuth';
 
 import { MaintenanceBooking } from '../../../../models/owns/maintenance';
 import {
@@ -47,9 +48,13 @@ interface FormRowItem {
 }
 
 const MaintenanceWorkOrderForm: React.FC = () => {
+  const { user } = useAuth();
+  const currentAdminName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'Admin';
+
   const [formNumber, setFormNumber] = useState<string>('2100');
   const [formDate, setFormDate] = useState<string>(new Date().toISOString().substring(0, 10));
   const [technicianName, setTechnicianName] = useState<string>('Nandhini');
+  const [adminSignerName, setAdminSignerName] = useState<string>(currentAdminName);
   const [availableBookings, setAvailableBookings] = useState<MaintenanceBooking[]>([]);
 
   const [rows, setRows] = useState<FormRowItem[]>([
@@ -73,10 +78,17 @@ const MaintenanceWorkOrderForm: React.FC = () => {
     }
   ]);
 
-  // Signature modal state
+  // Row signature modal state
   const [activeSignRowIndex, setActiveSignRowIndex] = useState<number | null>(null);
   const [signModalOpen, setSignModalOpen] = useState<boolean>(false);
   const sigCanvasRef = useRef<SignatureCanvas | null>(null);
+
+  // Bottom dual signatures state
+  const [techSignature, setTechSignature] = useState<string>('');
+  const [adminSignature, setAdminSignature] = useState<string>('');
+  const [bottomSignTarget, setBottomSignTarget] = useState<'tech' | 'admin' | null>(null);
+  const [bottomSignModalOpen, setBottomSignModalOpen] = useState<boolean>(false);
+  const bottomSigCanvasRef = useRef<SignatureCanvas | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -123,18 +135,54 @@ const MaintenanceWorkOrderForm: React.FC = () => {
     const booking = availableBookings.find((b) => b.bookingId === bCode);
     const updated = [...rows];
     if (booking) {
+      const displayBookingBy = booking.bookedBy
+        ? `${booking.bookedBy} (Rep: ${booking.reportedBy})`
+        : (booking.reportedBy || '');
+
       updated[index] = {
         ...updated[index],
         bookingId: booking.bookingId,
         startingDate: booking.date ? booking.date.substring(0, 10) : new Date().toISOString().substring(0, 10),
-        bookingBy: booking.reportedBy || '',
+        bookingBy: displayBookingBy,
         workDetails: booking.complaintDetails || '',
-        finishedDate: booking.closedDate ? booking.closedDate.substring(0, 10) : ''
+        finishedDate: booking.closedDate ? booking.closedDate.substring(0, 10) : '',
+        signature: booking.bookedBySignature || updated[index].signature || ''
       };
+
+      if (booking.bookedBySignature && !adminSignature) {
+        setAdminSignature(booking.bookedBySignature);
+      }
+      if (booking.bookedBy && (!adminSignerName || adminSignerName === 'Admin')) {
+        setAdminSignerName(booking.bookedBy);
+      }
     } else {
       updated[index] = { ...updated[index], bookingId: bCode };
     }
     setRows(updated);
+  };
+
+  const handleOpenBottomSignature = (target: 'tech' | 'admin') => {
+    setBottomSignTarget(target);
+    setBottomSignModalOpen(true);
+  };
+
+  const handleSaveBottomSignature = () => {
+    if (bottomSigCanvasRef.current && !bottomSigCanvasRef.current.isEmpty()) {
+      const dataUrl = bottomSigCanvasRef.current.getTrimmedCanvas().toDataURL('image/png');
+      if (bottomSignTarget === 'tech') {
+        setTechSignature(dataUrl);
+      } else if (bottomSignTarget === 'admin') {
+        setAdminSignature(dataUrl);
+      }
+      setBottomSignModalOpen(false);
+      setBottomSignTarget(null);
+    }
+  };
+
+  const handleClearBottomSignature = () => {
+    if (bottomSigCanvasRef.current) {
+      bottomSigCanvasRef.current.clear();
+    }
   };
 
   const handleOpenSignature = (rowIndex: number) => {
@@ -473,6 +521,150 @@ const MaintenanceWorkOrderForm: React.FC = () => {
             </Table>
           </TableContainer>
 
+          {/* Dual Official Signatures Section */}
+          <Box sx={{ mt: 3, pt: 2, borderTop: '2px solid #334155' }}>
+            <Grid container spacing={3} justifyContent="space-between">
+              {/* Technician Signature */}
+              <Grid item xs={12} sm={5.5}>
+                <Box
+                  sx={{
+                    border: '1px solid #cbd5e1',
+                    borderRadius: 1,
+                    p: 2,
+                    textAlign: 'center',
+                    backgroundColor: '#f8fafc'
+                  }}
+                >
+                  <Typography variant="subtitle2" fontWeight={800} color="#0f172a" gutterBottom>
+                    Technician Signature
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                    Attended By: <strong>{technicianName || 'Technician'}</strong>
+                  </Typography>
+                  <Box
+                    sx={{
+                      height: 65,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#ffffff',
+                      border: '1px dashed #cbd5e1',
+                      borderRadius: 1,
+                      mb: 1
+                    }}
+                  >
+                    {techSignature ? (
+                      <img
+                        src={techSignature}
+                        alt="Tech Sign"
+                        style={{ maxHeight: 58, maxWidth: '90%', objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
+                        (Technician sign pad)
+                      </Typography>
+                    )}
+                  </Box>
+                  <Box sx={{ '@media print': { display: 'none' } }}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<CreateIcon fontSize="small" />}
+                      onClick={() => handleOpenBottomSignature('tech')}
+                    >
+                      {techSignature ? 'Re-sign' : 'Sign as Technician'}
+                    </Button>
+                    {techSignature && (
+                      <Button
+                        size="small"
+                        color="error"
+                        sx={{ ml: 1 }}
+                        onClick={() => setTechSignature('')}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* Supervisor / Admin (Booked By) Signature */}
+              <Grid item xs={12} sm={5.5}>
+                <Box
+                  sx={{
+                    border: '1px solid #cbd5e1',
+                    borderRadius: 1,
+                    p: 2,
+                    textAlign: 'center',
+                    backgroundColor: '#f8fafc'
+                  }}
+                >
+                  <Typography variant="subtitle2" fontWeight={800} color="#0f172a" gutterBottom>
+                    Supervisor / Booked By Admin Signature
+                  </Typography>
+                  <Box display="flex" alignItems="center" justifyContent="center" gap={1} sx={{ mb: 1 }}>
+                    <Typography variant="caption" color="text.secondary">Verified By:</Typography>
+                    <TextField
+                      size="small"
+                      variant="standard"
+                      value={adminSignerName}
+                      onChange={(e) => setAdminSignerName(e.target.value)}
+                      placeholder="Admin / Supervisor"
+                      sx={{
+                        '& input': { fontSize: '0.8rem', fontWeight: 700, p: 0, textAlign: 'center' },
+                        maxWidth: 150
+                      }}
+                    />
+                  </Box>
+                  <Box
+                    sx={{
+                      height: 65,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#ffffff',
+                      border: '1px dashed #cbd5e1',
+                      borderRadius: 1,
+                      mb: 1
+                    }}
+                  >
+                    {adminSignature ? (
+                      <img
+                        src={adminSignature}
+                        alt="Admin Sign"
+                        style={{ maxHeight: 58, maxWidth: '90%', objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
+                        (Admin / Supervisor sign pad)
+                      </Typography>
+                    )}
+                  </Box>
+                  <Box sx={{ '@media print': { display: 'none' } }}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<CreateIcon fontSize="small" />}
+                      onClick={() => handleOpenBottomSignature('admin')}
+                    >
+                      {adminSignature ? 'Re-sign' : 'Sign as Admin'}
+                    </Button>
+                    {adminSignature && (
+                      <Button
+                        size="small"
+                        color="error"
+                        sx={{ ml: 1 }}
+                        onClick={() => setAdminSignature('')}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+
           {/* Form Footer Note */}
           <Box sx={{ mt: 3, pt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="caption" color="text.secondary">
@@ -484,7 +676,7 @@ const MaintenanceWorkOrderForm: React.FC = () => {
           </Box>
         </Card>
 
-        {/* Signature Dialog */}
+        {/* Row Signature Dialog */}
         <Dialog open={signModalOpen} onClose={() => setSignModalOpen(false)} maxWidth="xs" fullWidth>
           <DialogTitle>Capture Digital Signature</DialogTitle>
           <Divider />
@@ -513,6 +705,55 @@ const MaintenanceWorkOrderForm: React.FC = () => {
             </Button>
             <Button onClick={() => setSignModalOpen(false)}>Cancel</Button>
             <Button onClick={handleSaveSignature} variant="contained" color="primary">
+              Accept Signature
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Bottom Signature Dialog (Tech or Admin) */}
+        <Dialog
+          open={bottomSignModalOpen}
+          onClose={() => setBottomSignModalOpen(false)}
+          maxWidth="xs"
+          fullWidth
+        >
+          <DialogTitle>
+            {bottomSignTarget === 'tech'
+              ? 'Technician Digital Signature'
+              : 'Supervisor / Booked By Admin Digital Signature'}
+          </DialogTitle>
+          <Divider />
+          <DialogContent sx={{ textAlign: 'center', pt: 2 }}>
+            <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+              Sign below as{' '}
+              <strong>
+                {bottomSignTarget === 'tech'
+                  ? technicianName || 'Technician'
+                  : adminSignerName || 'Admin / Supervisor'}
+              </strong>
+            </Typography>
+            <Box
+              sx={{
+                border: '2px solid #334155',
+                borderRadius: 1,
+                display: 'inline-block',
+                backgroundColor: '#ffffff',
+                touchAction: 'none'
+              }}
+            >
+              <SignatureCanvas
+                ref={bottomSigCanvasRef}
+                canvasProps={{ width: 340, height: 140, className: 'dialogSigCanvas' }}
+              />
+            </Box>
+          </DialogContent>
+          <Divider />
+          <DialogActions sx={{ p: 2 }}>
+            <Button onClick={handleClearBottomSignature} color="inherit">
+              Clear
+            </Button>
+            <Button onClick={() => setBottomSignModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveBottomSignature} variant="contained" color="primary">
               Accept Signature
             </Button>
           </DialogActions>

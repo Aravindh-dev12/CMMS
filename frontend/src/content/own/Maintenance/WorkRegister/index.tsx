@@ -506,17 +506,21 @@ const MaintenanceWorkRegister: React.FC = () => {
                 <Grid item xs={12}>
                   <Card variant="outlined" sx={{ p: 2, backgroundColor: '#f0f9ff', borderColor: '#bae6fd' }}>
                     <Grid container spacing={1}>
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={3}>
                         <Typography variant="caption" color="text.secondary">Reported By</Typography>
                         <Typography variant="body2" fontWeight={600}>{selectedBookingForWork.reportedBy}</Typography>
                       </Grid>
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={3}>
+                        <Typography variant="caption" color="text.secondary">Booked By (Admin)</Typography>
+                        <Typography variant="body2" fontWeight={600}>{selectedBookingForWork.bookedBy || 'Admin'}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={3}>
                         <Typography variant="caption" color="text.secondary">Location Details</Typography>
                         <Typography variant="body2" fontWeight={600}>
                           {selectedBookingForWork.building} – {selectedBookingForWork.floor} ({selectedBookingForWork.exactLocation})
                         </Typography>
                       </Grid>
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={3}>
                         <Typography variant="caption" color="text.secondary">Current Status</Typography>
                         <Box sx={{ mt: 0.5 }}>
                           <Typography variant="body2" fontWeight={700} color="primary.main">
@@ -524,10 +528,25 @@ const MaintenanceWorkRegister: React.FC = () => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} sx={{ mt: 1 }}>
+                      <Grid item xs={12} sm={selectedBookingForWork.bookedBySignature ? 8 : 12} sx={{ mt: 1 }}>
                         <Typography variant="caption" color="text.secondary">Complaint Details</Typography>
                         <Typography variant="body2">{selectedBookingForWork.complaintDetails}</Typography>
+                        {selectedBookingForWork.remarks && (
+                          <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                            <strong>Remarks:</strong> {selectedBookingForWork.remarks}
+                          </Typography>
+                        )}
                       </Grid>
+                      {selectedBookingForWork.bookedBySignature && (
+                        <Grid item xs={12} sm={4} sx={{ mt: 1 }}>
+                          <Typography variant="caption" color="text.secondary" display="block">Booking Sign:</Typography>
+                          <img
+                            src={selectedBookingForWork.bookedBySignature}
+                            alt="Booking Sign"
+                            style={{ height: 35, border: '1px solid #cbd5e1', backgroundColor: '#fff', borderRadius: 2 }}
+                          />
+                        </Grid>
+                      )}
                     </Grid>
                   </Card>
                 </Grid>

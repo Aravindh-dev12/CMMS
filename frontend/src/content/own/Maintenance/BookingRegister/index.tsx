@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -40,6 +40,9 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HistoryIcon from '@mui/icons-material/History';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
+import CreateIcon from '@mui/icons-material/Create';
+import SignatureCanvas from 'react-signature-canvas';
+import useAuth from 'src/hooks/useAuth';
 
 import {
   MaintenanceBooking,
@@ -62,6 +65,7 @@ const floorsList = ['ALL', 'Basement', 'Ground Floor', 'First Floor', 'Second Fl
 const statusOptions = ['ALL', 'PENDING', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CLOSED'];
 
 const MaintenanceBookingRegister: React.FC = () => {
+  const { user } = useAuth();
   const [bookings, setBookings] = useState<MaintenanceBooking[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(0);
@@ -78,10 +82,16 @@ const MaintenanceBookingRegister: React.FC = () => {
   // Modals
   const [openNewModal, setOpenNewModal] = useState<boolean>(false);
   const [nextBookingCode, setNextBookingCode] = useState<string>('');
+  const [bookingSigModalOpen, setBookingSigModalOpen] = useState<boolean>(false);
+  const bookingSigRef = useRef<SignatureCanvas | null>(null);
+
   const [newBookingData, setNewBookingData] = useState<MaintenanceBookingPostDTO>({
     bookingId: '',
     date: new Date().toISOString().substring(0, 10),
     reportedBy: '',
+    bookedBy: '',
+    bookedBySignature: '',
+    remarks: '',
     building: 'B1',
     floor: 'Ground Floor',
     room: '',
@@ -141,6 +151,7 @@ const MaintenanceBookingRegister: React.FC = () => {
 
   const handleOpenNewModal = async () => {
     try {
+      const currentAdminName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'Admin';
       const res = await getNextBookingId();
       setNextBookingCode(res.nextBookingId);
       setNewBookingData((prev) => ({
@@ -148,6 +159,9 @@ const MaintenanceBookingRegister: React.FC = () => {
         bookingId: res.nextBookingId,
         date: new Date().toISOString().substring(0, 10),
         reportedBy: '',
+        bookedBy: currentAdminName,
+        bookedBySignature: '',
+        remarks: '',
         room: '',
         exactLocation: '',
         complaintDetails: ''
@@ -157,6 +171,20 @@ const MaintenanceBookingRegister: React.FC = () => {
     } catch (err) {
       console.error(err);
       setOpenNewModal(true);
+    }
+  };
+
+  const handleSaveBookingSignature = () => {
+    if (bookingSigRef.current && !bookingSigRef.current.isEmpty()) {
+      const dataUrl = bookingSigRef.current.getTrimmedCanvas().toDataURL('image/png');
+      setNewBookingData((prev) => ({ ...prev, bookedBySignature: dataUrl }));
+      setBookingSigModalOpen(false);
+    }
+  };
+
+  const handleClearBookingSignature = () => {
+    if (bookingSigRef.current) {
+      bookingSigRef.current.clear();
     }
   };
 
@@ -411,20 +439,22 @@ const MaintenanceBookingRegister: React.FC = () => {
             >
               <TableHead>
                 <TableRow>
-                  <TableCell width="60" align="center">S.No</TableCell>
-                  <TableCell width="110">Booking ID</TableCell>
-                  <TableCell width="110">Date</TableCell>
-                  <TableCell width="140">Reported By</TableCell>
-                  <TableCell width="200">Location Details</TableCell>
+                  <TableCell width="50" align="center">S.No</TableCell>
+                  <TableCell width="105">Booking ID</TableCell>
+                  <TableCell width="100">Date</TableCell>
+                  <TableCell width="125">Reported By</TableCell>
+                  <TableCell width="135">Booked By (Admin)</TableCell>
+                  <TableCell width="175">Location Details</TableCell>
                   <TableCell>Complaint / Maintenance Details</TableCell>
-                  <TableCell width="120" align="center">Booking Status</TableCell>
+                  <TableCell width="115" align="center">Booking Status</TableCell>
+                  <TableCell width="80" align="center">Sign</TableCell>
                   <TableCell width="130" align="center" sx={{ '@media print': { display: 'none' } }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={10} align="center" sx={{ py: 6 }}>
                       <CircularProgress size={36} />
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                         Loading Maintenance Bookings...
@@ -433,7 +463,7 @@ const MaintenanceBookingRegister: React.FC = () => {
                   </TableRow>
                 ) : bookings.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                    <TableCell colSpan={10} align="center" sx={{ py: 6 }}>
                       <Typography variant="subtitle1" fontWeight={600} color="text.secondary">
                         No Maintenance Bookings Found
                       </Typography>
@@ -460,6 +490,9 @@ const MaintenanceBookingRegister: React.FC = () => {
                           </TableCell>
                           <TableCell>{formattedDate}</TableCell>
                           <TableCell sx={{ fontWeight: 600 }}>{b.reportedBy}</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                            {b.bookedBy || 'Admin'}
+                          </TableCell>
                           <TableCell>
                             <Typography variant="body2" fontWeight={600}>
                               {b.building} – {b.floor}
@@ -470,14 +503,40 @@ const MaintenanceBookingRegister: React.FC = () => {
                           </TableCell>
                           <TableCell sx={{ maxWidth: 300 }}>
                             <Typography variant="body2">{b.complaintDetails}</Typography>
+                            {b.remarks && (
+                              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontStyle: 'italic', mt: 0.5 }}>
+                                Remarks: {b.remarks}
+                              </Typography>
+                            )}
                             {b.typeOfWork && (
-                              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                              <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600, display: 'block' }}>
                                 Type: {b.typeOfWork}
                               </Typography>
                             )}
                           </TableCell>
                           <TableCell align="center">
                             <StatusBadge status={b.status} />
+                          </TableCell>
+                          <TableCell align="center">
+                            {b.bookedBySignature ? (
+                              <Tooltip title="Digital Signature Attached">
+                                <img
+                                  src={b.bookedBySignature}
+                                  alt="Sign"
+                                  style={{
+                                    height: 24,
+                                    maxWidth: 60,
+                                    objectFit: 'contain',
+                                    border: '1px solid #cbd5e1',
+                                    borderRadius: 2,
+                                    backgroundColor: '#fff',
+                                    padding: 1
+                                  }}
+                                />
+                              </Tooltip>
+                            ) : (
+                              <Typography variant="caption" color="text.disabled">—</Typography>
+                            )}
                           </TableCell>
                           <TableCell align="center" sx={{ '@media print': { display: 'none' } }}>
                             <Stack direction="row" spacing={0.5} justifyContent="center">
@@ -600,6 +659,16 @@ const MaintenanceBookingRegister: React.FC = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
+                  fullWidth
+                  label="Booked / Entered By (Admin)"
+                  placeholder="e.g. Super Admin"
+                  value={newBookingData.bookedBy || ''}
+                  onChange={(e) => setNewBookingData({ ...newBookingData, bookedBy: e.target.value })}
+                  helperText="Admin or staff member entering this record"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
                   select
                   fullWidth
                   label="Type of Work"
@@ -670,6 +739,75 @@ const MaintenanceBookingRegister: React.FC = () => {
                   onChange={(e) => setNewBookingData({ ...newBookingData, complaintDetails: e.target.value })}
                 />
               </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Remarks / Initial Notes (Optional)"
+                  placeholder="e.g. Priority high, reported in person at reception desk."
+                  value={newBookingData.remarks || ''}
+                  onChange={(e) => setNewBookingData({ ...newBookingData, remarks: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                  Admin / Reporter Digital Signature
+                </Typography>
+                <Box
+                  sx={{
+                    border: '1px dashed #cbd5e1',
+                    borderRadius: 1,
+                    p: 2,
+                    textAlign: 'center',
+                    backgroundColor: '#f8fafc'
+                  }}
+                >
+                  {newBookingData.bookedBySignature ? (
+                    <Box>
+                      <img
+                        src={newBookingData.bookedBySignature}
+                        alt="Booking Signature"
+                        style={{
+                          maxHeight: 60,
+                          maxWidth: 220,
+                          display: 'inline-block',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: 4,
+                          backgroundColor: '#fff',
+                          padding: 4
+                        }}
+                      />
+                      <Box mt={1}>
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={() => setNewBookingData({ ...newBookingData, bookedBySignature: '' })}
+                        >
+                          Clear Sign
+                        </Button>
+                        <Button
+                          size="small"
+                          color="primary"
+                          sx={{ ml: 1 }}
+                          onClick={() => setBookingSigModalOpen(true)}
+                        >
+                          Re-sign
+                        </Button>
+                      </Box>
+                    </Box>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      startIcon={<CreateIcon />}
+                      onClick={() => setBookingSigModalOpen(true)}
+                      size="small"
+                    >
+                      Sign Complaint Form
+                    </Button>
+                  )}
+                </Box>
+              </Grid>
             </Grid>
           </DialogContent>
           <Divider />
@@ -679,6 +817,57 @@ const MaintenanceBookingRegister: React.FC = () => {
             </Button>
             <Button onClick={handleCreateBooking} variant="contained" color="primary">
               Register Complaint
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Modal: Signature Pad for Booking */}
+        <Dialog
+          open={bookingSigModalOpen}
+          onClose={() => setBookingSigModalOpen(false)}
+          maxWidth="xs"
+          fullWidth
+        >
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h5" fontWeight={700}>
+              Sign Complaint Form
+            </Typography>
+            <IconButton onClick={() => setBookingSigModalOpen(false)} size="small">
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <Divider />
+          <DialogContent sx={{ pt: 2, textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+              Sign in the box below using your mouse, stylus, or fingertip.
+            </Typography>
+            <Box
+              sx={{
+                border: '2px solid #0284c7',
+                borderRadius: 1,
+                backgroundColor: '#ffffff',
+                display: 'inline-block',
+                touchAction: 'none'
+              }}
+            >
+              <SignatureCanvas
+                ref={bookingSigRef}
+                penColor="black"
+                canvasProps={{
+                  width: 360,
+                  height: 160,
+                  className: 'sigCanvas'
+                }}
+              />
+            </Box>
+          </DialogContent>
+          <Divider />
+          <DialogActions sx={{ p: 2 }}>
+            <Button onClick={handleClearBookingSignature} color="inherit">
+              Clear
+            </Button>
+            <Button onClick={handleSaveBookingSignature} variant="contained" color="primary">
+              Save Signature
             </Button>
           </DialogActions>
         </Dialog>
@@ -798,6 +987,10 @@ const MaintenanceBookingRegister: React.FC = () => {
                   <Typography variant="body2" fontWeight={600}>{selectedBooking.reportedBy}</Typography>
                 </Box>
                 <Box display="flex" justifyContent="space-between">
+                  <Typography variant="body2" color="text.secondary">Booked By (Admin)</Typography>
+                  <Typography variant="body2" fontWeight={600}>{selectedBooking.bookedBy || 'Admin'}</Typography>
+                </Box>
+                <Box display="flex" justifyContent="space-between">
                   <Typography variant="body2" color="text.secondary">Location</Typography>
                   <Typography variant="body2" fontWeight={600} textAlign="right">
                     {selectedBooking.building} – {selectedBooking.floor} <br />
@@ -816,6 +1009,30 @@ const MaintenanceBookingRegister: React.FC = () => {
                     <Typography variant="body2">{selectedBooking.complaintDetails}</Typography>
                   </Card>
                 </Box>
+                {selectedBooking.remarks && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Remarks / Notes
+                    </Typography>
+                    <Card variant="outlined" sx={{ p: 1.5, backgroundColor: '#f9fafb' }}>
+                      <Typography variant="body2">{selectedBooking.remarks}</Typography>
+                    </Card>
+                  </Box>
+                )}
+                {selectedBooking.bookedBySignature && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Booking Digital Signature
+                    </Typography>
+                    <Card variant="outlined" sx={{ p: 1, display: 'inline-block', backgroundColor: '#fff' }}>
+                      <img
+                        src={selectedBooking.bookedBySignature}
+                        alt="Booking Signature"
+                        style={{ height: 48, maxWidth: '100%', objectFit: 'contain' }}
+                      />
+                    </Card>
+                  </Box>
+                )}
 
                 {selectedBooking.closedId && (
                   <Card variant="outlined" sx={{ p: 1.5, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }}>
