@@ -245,5 +245,7 @@
              relativeToChangelogFile="true"/>
     <include file="changelog/2026_11_02_add_booking_signature.xml"
              relativeToChangelogFile="true"/>
+    <include file="changelog/2026_11_03_seed_worker_user.xml"
+             relativeToChangelogFile="true"/>
 </databaseChangeLog>
 

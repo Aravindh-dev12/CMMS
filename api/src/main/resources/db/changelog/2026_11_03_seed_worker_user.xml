@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="2026_11_03_seed_worker_technician_user" author="CMMS Team">
+        <sql>
+            INSERT INTO own_user (id, created_at, updated_at, email, username, first_name, last_name, password, enabled, owns_company, rate, role_id, company_id, enabled_in_subscription, created_via_sso)
+            VALUES (
+                (SELECT COALESCE(MAX(id), 0) + 1 FROM own_user),
+                NOW(),
+                NOW(),
+                'worker@cmms.local',
+                'worker@cmms.local',
+                'Technician',
+                'Worker',
+                '$2b$12$4Sb1OOS0H9qj4yu2OBHCqOpB4pj4tawTBCKsxuul2x/yE5Ua383Fi',
+                true,
+                false,
+                0,
+                4,
+                2,
+                true,
+                false
+            )
+            ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password, role_id = 4, enabled = true;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

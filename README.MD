@@ -354,8 +354,9 @@ Pre-configured accounts ready for immediate testing:
 
 | Role | Email | Password | Description |
 |---|---|---|---|
-| **Administrator** | `admin@cmms.local` | `Admin@12345678` | Company Admin with full access to registers, forms & dashboards |
-| **Super Admin** | `superadmin@test.com` | `pls_change_me` | System Super Administrator |
+| **Super Admin** | `superadmin@test.com` | `pls_change_me` | System Super Administrator with multi-tenant company oversight |
+| **Administrator** | `admin@cmms.local` | `Admin@12345678` | Company Admin with full access to create bookings, assign technicians, registers, forms & dashboards |
+| **Maintenance Technician / Worker** | `worker@cmms.local` | `Worker@12345678` | Field Technician / Worker: view assigned work, record start/end time, update progress & sign work forms |
 
 ---
 
